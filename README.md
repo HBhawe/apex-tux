@@ -13,6 +13,7 @@ Make use of your OLED screen instead of letting the SteelSeries logo burn itself
 
 - Music player integration (requires DBus)
 - Discord notifications (requires DBus)
+- Volume overlay: shows the volume on the OLED when it changes, e.g. via the Apex 7 volume roller (requires `pactl`)
 - Clock
 - System metrics
 - Scrolling text
@@ -140,6 +141,21 @@ titles may remain visible longer while they scroll.
 display_seconds = 5
 ```
 
+### Volume overlay
+
+When the system volume changes (volume roller, media keys, tray slider), the
+current volume or a "MUTED" label is shown on the OLED for a moment and the
+previous screen is then restored. Changes are detected with `pactl subscribe`,
+so this works with PipeWire (via pipewire-pulse) and PulseAudio. `pactl` must be
+installed (`libpulse` / `pulseaudio-utils`).
+
+```toml
+[volume]
+enabled = true
+# How long the overlay stays up after the last change, in milliseconds
+display_ms = 1500
+```
+
 ## Usage
 
 Simply run the binary under `target/release/apex-tux` and make sure the settings.toml is in your current directory.
@@ -179,6 +195,15 @@ Terminal=true
 Type=Application
 ```
 - Replace path to the apex-tux executable accordingly
+
+### Install script (systemd user service)
+
+`./install.sh` builds the release binary, installs it to `~/.local/bin/apex-tux`,
+copies `settings.toml` to `~/.config/apex-tux/` if no config exists there yet,
+and installs, enables and starts a systemd **user** service that launches with
+your graphical session. Run it again after any change to rebuild and redeploy.
+To start the service without logging in, run `loginctl enable-linger $USER`.
+`settings.template.toml` is a ready-made example configuration.
 
 ### Systemd service
 
