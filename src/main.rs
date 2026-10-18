@@ -35,6 +35,7 @@ mod dbus;
 
 mod providers;
 mod render;
+mod volume;
 
 #[cfg(all(feature = "simulator", feature = "usb"))]
 compile_error!(

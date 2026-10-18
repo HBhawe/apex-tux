@@ -1,0 +1,61 @@
+[interval]
+# The interval at which the screen should automatically change
+# set to 0 if you don't want it to change automatically
+refresh=45
+
+[clock]
+enabled = true
+# Set this to the highest priority so it will start with the clock
+# priority = 1
+# Enables a twelve hour clock instead of the 24hr one
+# Defaults to your local format if unset
+# twelve_hour = false
+
+[mpris2]
+enabled = true
+# Set this so web browsers like Firefox or Chrome don't steal the focus of your real music player
+# You can check what to put here by using tools like D-Feet
+# preferred_player = "Lollypop"
+
+[notifications]
+# Minimum time, in seconds, to show a notification on the OLED.
+display_seconds = 5
+
+[coindesk]
+enabled = false
+# Valid choices are "gbp", "usd" and "eur"
+# Default is USD
+currency = "eur"
+
+[sysinfo]
+enabled = true
+# The polling interval for system stats in milliseconds.
+polling_interval = 1500
+# The maximum value for the net I/O stat bar (in MiB), used for scaling its fill
+# net_load_max = 100
+# The maximum value for the cpu frequency stat bar (in GHz), used for scaling its fill
+# cpu_frequency_max = 7
+# The maximum value for the temperature stat bar (in degC), used for scaling its fill
+# temperature_max = 100
+# Network interface name used in network I/O stat bar
+# To find values for this config in Linux, use the `ip link` command
+# net_interface_name = "eth0"
+# sensor name used in temperature stat bar
+# To find values for this config in Linux, use the `sensors` command
+# sensor_name = "asus_wmi_sensors CPU Temperature"
+
+[image]
+enabled = false
+# /!\
+# Please note that it is a relative path, so once compiled, please 
+# copy the images folder to the current directory
+path = "images/sample_1.gif"
+# This only works if the image feature is passed in the build instructions
+# It supports all those formats : https://github.com/image-rs/image/tree/8824ab3375ddab0fd3429fe3915334523d50c532#supported-image-formats
+# (even in color, but it will only display in black and white)
+
+[volume]
+# Show the volume on screen when it changes (volume roller, media keys, tray)
+enabled = true
+# How long the overlay stays up after the last change, in milliseconds
+display_ms = 1500

@@ -23,7 +23,7 @@ use std::sync::{
     Arc,
 };
 use tokio::{
-    sync::broadcast,
+    sync::{broadcast, watch},
     time::{self, MissedTickBehavior},
 };
 
@@ -168,6 +168,18 @@ impl<'a, T: 'a + AsyncDevice> Scheduler<'a, T> {
         change.set_missed_tick_behavior(MissedTickBehavior::Skip);
         //the last time the screen was changed
         let time_last_change = Rc::new(RefCell::new(Instant::now()));
+
+        // Volume overlay. When disabled, `_volume_tx` stays alive so `changed()` never fires.
+        let (_volume_tx, volume_rx) = watch::channel(None);
+        let mut volume_rx = if config.get_bool("volume.enabled").unwrap_or(true) {
+            crate::volume::spawn_watcher()
+        } else {
+            volume_rx
+        };
+        let volume_ms = config.get_int("volume.display_ms").unwrap_or(1500).max(100) as u64;
+        // Last frame from the current screen, redrawn when the overlay ends
+        let mut last_frame: Option<FrameBuffer> = None;
+
         loop {
             tokio::select! {
                 cmd = rx.recv() => {
@@ -201,7 +213,14 @@ impl<'a, T: 'a + AsyncDevice> Scheduler<'a, T> {
                 }
                 content = y.next() => {
                     if let Some(Ok(content)) = &content {
+                        last_frame = Some(*content);
                         self.device.draw(content).await?;
+                    }
+                }
+                Ok(()) = volume_rx.changed() => {
+                    self.show_volume(&mut volume_rx, volume_ms).await?;
+                    if let Some(frame) = &last_frame {
+                        self.device.draw(frame).await?;
                     }
                 }
                 _ = change.tick() => {
@@ -221,6 +240,32 @@ impl<'a, T: 'a + AsyncDevice> Scheduler<'a, T> {
 
         self.device.clear().await?;
         self.device.shutdown().await?;
+        Ok(())
+    }
+
+    /// Shows the volume overlay, keeping it up while the volume keeps changing.
+    async fn show_volume(
+        &mut self,
+        rx: &mut watch::Receiver<Option<crate::volume::Volume>>,
+        display_ms: u64,
+    ) -> Result<()> {
+        let hold = Duration::from_millis(display_ms);
+        let mut deadline = time::Instant::now() + hold;
+        loop {
+            let current = *rx.borrow_and_update();
+            if let Some(volume) = current {
+                self.device.draw(&crate::volume::render(volume)?).await?;
+            }
+            tokio::select! {
+                changed = rx.changed() => {
+                    if changed.is_err() {
+                        break;
+                    }
+                    deadline = time::Instant::now() + hold;
+                }
+                () = time::sleep_until(deadline) => break,
+            }
+        }
         Ok(())
     }
 }

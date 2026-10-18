@@ -53,3 +53,8 @@ path = "images/sample_1.gif"
 # This only works if the image feature is passed in the build instructions
 # It supports all those formats : https://github.com/image-rs/image/tree/8824ab3375ddab0fd3429fe3915334523d50c532#supported-image-formats
 # (even in color, but it will only display in black and white)
+[volume]
+# Show the volume on screen when it changes (volume roller, media keys, tray)
+enabled = true
+# How long the overlay stays up after the last change, in milliseconds
+display_ms = 1500
